@@ -127,7 +127,3 @@ const LABEL_OVERRIDES = {
   are resolved via fallback objects or the Tooling API; in rare cases a
   grant may display as its raw ID if none of the fallbacks resolve it.
 
-## License
-
-Add a license of your choice (e.g. MIT) before publishing this
-repository publicly.
