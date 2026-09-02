@@ -1,7 +1,7 @@
 # SF Permission Set Comparator
 
 A Chrome extension that compares a Salesforce **Permission Set** side by side
-between any two orgs you're logged into — no API tokens, no Connected App
+between any two orgs you're logged into  no API tokens, no Connected App
 setup, no copy-pasting XML. Click the toolbar icon, pick two orgs and a
 permission set, and get a full diff broken out by category.
 
