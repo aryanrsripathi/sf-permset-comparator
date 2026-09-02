@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>SF Permission Set Comparator</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      margin: 0; background: #f4f6f9; color: #16325c; font-size: 14px;
+    }
+    header {
+      background: #0070d2; color: #fff; padding: 16px 24px;
+    }
+    header h1 { margin: 0; font-size: 18px; }
+    header p { margin: 4px 0 0; font-size: 13px; opacity: .85; }
+    main { max-width: 1100px; margin: 24px auto 60px; padding: 0 16px; }
+    .card {
+      background: #fff; border: 1px solid #dddbda; border-radius: 10px;
+      padding: 20px 24px; margin-bottom: 16px;
+    }
+    .step {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 15px; font-weight: 600; margin: 18px 0 10px;
+    }
+    .step:first-child { margin-top: 0; }
+    .step-num {
+      width: 24px; height: 24px; border-radius: 50%; background: #0070d2;
+      color: #fff; font-size: 13px; display: flex; align-items: center;
+      justify-content: center; flex-shrink: 0;
+    }
+    .step small { font-weight: 400; color: #706e6b; }
+    .orgs { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    label { display: block; font-size: 12px; color: #706e6b; margin: 0 0 4px; }
+    select, input[type="text"] {
+      width: 100%; padding: 9px 10px; border: 1px solid #dddbda;
+      border-radius: 6px; font-size: 13px; background: #fff;
+    }
+    select:focus, input:focus { outline: 2px solid #0070d2; border-color: #0070d2; }
+    .actions { display: flex; gap: 10px; align-items: center; margin-top: 6px; flex-wrap: wrap; }
+    button {
+      padding: 10px 22px; border: none; border-radius: 6px; cursor: pointer;
+      background: #0070d2; color: #fff; font-size: 14px; font-weight: 600;
+      white-space: nowrap;
+    }
+    button:hover:not(:disabled) { background: #005fb2; }
+    button:disabled { background: #c9c7c5; cursor: default; }
+    button.secondary {
+      background: #fff; color: #0070d2; border: 1px solid #dddbda; font-weight: 500;
+    }
+    button.secondary:hover:not(:disabled) { background: #f4f6f9; }
+    button.secondary:disabled { color: #c9c7c5; background: #fff; }
+    .toggle {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: #16325c; cursor: pointer; margin-left: auto;
+    }
+    .toggle input { width: auto; }
+    .hint { font-size: 12px; color: #706e6b; margin-top: 14px; line-height: 1.5; }
+    #status { margin: 12px 0; font-size: 13px; color: #16325c; white-space: pre-line; }
+    #status.error {
+      color: #8e030f; background: #fddde0; border: 1px solid #f5b3b9;
+      border-radius: 8px; padding: 10px 14px;
+    }
+    .empty-orgs {
+      padding: 12px 14px; background: #fef9e7; border: 1px solid #f6e0a4;
+      border-radius: 8px; font-size: 13px; line-height: 1.6; margin-bottom: 16px;
+    }
+
+    /* ---- Results ---- */
+    .summary {
+      display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    }
+    .summary .big {
+      font-size: 34px; font-weight: 700; line-height: 1;
+    }
+    .summary .big.diff { color: #b45309; }
+    .summary .big.same { color: #047857; }
+    .summary .meaning { font-size: 14px; }
+    .summary .meaning small { color: #706e6b; display: block; margin-top: 3px; }
+    .org-chips { margin-left: auto; text-align: right; font-size: 12px; }
+    .org-chip {
+      display: inline-block; padding: 3px 10px; border-radius: 999px;
+      background: #eef4fb; border: 1px solid #c5d9f1; color: #16325c;
+      margin: 2px 0 2px 6px;
+    }
+    .legend {
+      display: flex; gap: 16px; flex-wrap: wrap; align-items: center;
+      font-size: 12px; color: #706e6b; margin-top: 14px;
+      border-top: 1px solid #f0f0f0; padding-top: 12px;
+    }
+    .chip {
+      display: inline-block; padding: 2px 10px; border-radius: 999px;
+      font-size: 12px; font-weight: 600;
+    }
+    .chip.yes { background: #d1f7e0; color: #04724d; }
+    .chip.no { background: #fde2e4; color: #a4262c; }
+    .chip.none { background: #eeeeee; color: #706e6b; font-weight: 500; }
+    .overview {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 10px; margin: 16px 0;
+    }
+    .ov-card {
+      display: block; text-decoration: none; color: inherit;
+      background: #fff; border: 1px solid #dddbda; border-radius: 8px;
+      padding: 10px 14px; font-size: 13px;
+    }
+    .ov-card:hover { border-color: #0070d2; }
+    .ov-card .ov-title { font-weight: 600; margin-bottom: 4px; }
+    .ov-card .ov-diff { color: #b45309; font-weight: 600; }
+    .ov-card .ov-same { color: #047857; }
+    .toolbar { display: flex; gap: 12px; align-items: center; margin: 4px 0 14px; }
+    .toolbar input { max-width: 360px; }
+    .toolbar .muted { font-size: 12px; color: #706e6b; }
+    details.category {
+      background: #fff; border: 1px solid #dddbda; border-radius: 10px;
+      margin-bottom: 10px; overflow: hidden; scroll-margin-top: 12px;
+    }
+    details.category > summary {
+      cursor: pointer; padding: 13px 18px; font-weight: 600;
+      display: flex; justify-content: space-between; align-items: center;
+      list-style: none; gap: 10px;
+    }
+    details.category > summary::-webkit-details-marker { display: none; }
+    details.category > summary::before {
+      content: "▸"; color: #706e6b; font-size: 12px;
+    }
+    details[open].category > summary::before { content: "▾"; }
+    details.category > summary .title { flex: 1; }
+    .badge { font-size: 12px; font-weight: 600; padding: 3px 12px; border-radius: 999px; white-space: nowrap; }
+    .badge.diff { background: #fdf0d5; color: #92400e; }
+    .badge.same { background: #d1f7e0; color: #04724d; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 8px 18px; border-top: 1px solid #f0f0f0; }
+    th { background: #fafaf9; color: #706e6b; font-size: 12px; font-weight: 600; }
+    tr.row-diff td { background: #fff8e7; }
+    /* Matrix layout (per-org column groups, like a profile spreadsheet) */
+    .mk { font-weight: 700; }
+    .mk.yes { color: #04724d; }
+    .mk.no { color: #a4262c; }
+    .mk.none { color: #b0adab; font-weight: 400; }
+    table.matrix th.grp {
+      text-align: center; background: #eef4fb; color: #16325c;
+      font-size: 13px; border-left: none;
+    }
+    table.matrix th.sub { font-size: 11px; text-align: center; padding: 6px 8px; }
+    table.matrix td.markcell { text-align: center; padding: 6px 8px; }
+    table.matrix th.gstart, table.matrix td.gstart { border-left: 2px solid #dddbda; }
+    table.matrix td.cell-diff { background: #fff3c4; }
+    table.matrix th.lbl {
+      background: #fafaf9; color: #16325c; font-weight: 500; width: 130px;
+    }
+    .crud-wrap { padding: 14px 18px 0; }
+    .crud-caption { font-size: 12px; color: #706e6b; margin-bottom: 6px; }
+    table.crud-block { max-width: 560px; border: 1px solid #f0f0f0; }
+    .obj-filter-bar {
+      padding: 12px 18px; background: #fafaf9; border-top: 1px solid #f0f0f0;
+      display: flex; gap: 10px; align-items: center; font-size: 13px;
+    }
+    .obj-filter-bar label { margin: 0; }
+    .obj-filter-bar select { width: auto; max-width: 420px; }
+    .placeholder { padding: 16px 18px; color: #706e6b; font-size: 13px; }
+    .hl-sample { background: #fff3c4; padding: 2px 8px; border-radius: 4px; }
+    .ov-count { color: #706e6b; }
+    .note {
+      padding: 8px 18px; font-size: 12px; color: #92400e; background: #fef9e7;
+      border-top: 1px solid #f6e0a4;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Permission Set Comparator</h1>
+    <p>See exactly how a permission set differs between two of your Salesforce orgs</p>
+  </header>
+  <main>
+    <div class="card">
+      <div id="no-orgs" class="empty-orgs" style="display:none">
+        <b>No logged-in Salesforce orgs found.</b> Open your orgs in other tabs and
+        log in as usual (production and/or sandboxes), then click <b>Refresh orgs</b>.
+      </div>
+
+      <div class="step"><span class="step-num">1</span> Choose two orgs
+        <small>— every org you're logged into in Chrome is detected automatically</small></div>
+      <div class="orgs">
+        <div>
+          <label>First org</label>
+          <select id="org1-select"><option value="">Detecting orgs…</option></select>
+        </div>
+        <div>
+          <label>Second org</label>
+          <select id="org2-select"><option value="">Detecting orgs…</option></select>
+        </div>
+      </div>
+
+      <div class="step"><span class="step-num">2</span> Pick a permission set
+        <small>— type to search by name</small></div>
+      <input type="text" id="permset" list="permset-list"
+             placeholder="Select both orgs first…" disabled>
+      <datalist id="permset-list"></datalist>
+
+      <div class="step"><span class="step-num">3</span> Compare</div>
+      <div class="actions">
+        <button id="compare" disabled>Compare permission set</button>
+        <button id="refresh" class="secondary">Refresh orgs</button>
+        <button id="export" class="secondary" disabled>Download report</button>
+        <label class="toggle">
+          <input type="checkbox" id="show-all">
+          Show everything, not only differences
+        </label>
+      </div>
+
+      <div class="hint">
+        No tokens or passwords needed — the extension reuses your existing Salesforce
+        logins in this browser, only within this tab.
+      </div>
+    </div>
+    <div id="status"></div>
+    <div id="results"></div>
+  </main>
+  <script src="label-overrides.js"></script>
+  <script src="app-permissions.js"></script>
+  <script src="comparator.js"></script>
+</body>
+</html>
